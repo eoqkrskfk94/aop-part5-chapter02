@@ -2,10 +2,14 @@ package com.mj.aop_part5_chapter02.presentation.main
 
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
+import com.mj.aop_part5_chapter02.R
 import com.mj.aop_part5_chapter02.databinding.ActivityMainBinding
 import com.mj.aop_part5_chapter02.presentation.BaseActivity
+import com.mj.aop_part5_chapter02.presentation.list.ProductListFragment
+import com.mj.aop_part5_chapter02.presentation.profile.ProfileFragment
 import org.koin.android.ext.android.inject
 
 internal class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(), BottomNavigationView.OnNavigationItemSelectedListener {
@@ -21,15 +25,39 @@ internal class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>()
 
     private fun initViews() = with(binding) {
         bottomNav.setOnNavigationItemSelectedListener(this@MainActivity)
-
+        showFragment(ProductListFragment(), ProductListFragment.TAG)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        TODO("Not yet implemented")
+        return when(item.itemId) {
+            R.id.menu_products -> {
+                showFragment(ProductListFragment(), ProductListFragment.TAG)
+                true
+            }
+            R.id.menu_profile -> {
+                showFragment(ProfileFragment(), ProfileFragment.TAG)
+                true
+            }
+
+            else -> false
+        }
+    }
+
+    private fun showFragment(fragment: Fragment, tag: String){
+        val findFragment = supportFragmentManager.findFragmentByTag(tag)
+        supportFragmentManager.fragments.forEach { fm ->
+            supportFragmentManager.beginTransaction().hide(fm).commit()
+        }
+        findFragment?.let {
+            supportFragmentManager.beginTransaction().show(it).commit()
+        } ?: kotlin.run {
+            supportFragmentManager.beginTransaction()
+                .add(R.id.fragmentContainer, fragment, tag)
+                .commitAllowingStateLoss()
+        }
     }
 
     override fun observeData() {
-        TODO("Not yet implemented")
     }
 
 }

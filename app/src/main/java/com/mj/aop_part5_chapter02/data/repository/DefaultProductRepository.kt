@@ -32,7 +32,7 @@ class DefaultProductRepository(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getProductItem(itemId: Long): ProductEntity = _root_ide_package_.kotlinx.coroutines.withContext(ioDispatcher) {
+    override suspend fun getProductItem(itemId: Long): ProductEntity = withContext(ioDispatcher) {
 
         TODO("Not yet implemented")
     }
