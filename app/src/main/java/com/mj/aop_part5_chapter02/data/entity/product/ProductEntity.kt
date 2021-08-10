@@ -1,5 +1,4 @@
 package com.mj.aop_part5_chapter02.data.entity.product
-
 import java.util.*
 
 data class ProductEntity(

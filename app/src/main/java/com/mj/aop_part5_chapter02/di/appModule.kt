@@ -7,6 +7,7 @@ import com.mj.aop_part5_chapter02.data.network.provideProductRetrofit
 import com.mj.aop_part5_chapter02.data.repository.DefaultProductRepository
 import com.mj.aop_part5_chapter02.data.repository.ProductRepository
 import com.mj.aop_part5_chapter02.domain.GetProductItemUserCase
+import com.mj.aop_part5_chapter02.domain.GetProductListUserCase
 import com.mj.aop_part5_chapter02.presentation.list.ProductListViewModel
 import com.mj.aop_part5_chapter02.presentation.main.MainViewModel
 import com.mj.aop_part5_chapter02.presentation.profile.ProfileViewModel
@@ -18,7 +19,7 @@ val appModule = module {
 
     //viewmodels
     viewModel { MainViewModel() }
-    viewModel {ProductListViewModel()}
+    viewModel {ProductListViewModel(get())}
     viewModel {ProfileViewModel()}
 
     //Coroutine Dispatcher
@@ -27,6 +28,7 @@ val appModule = module {
 
     //UseCases
     factory { GetProductItemUserCase(get()) }
+    factory { GetProductListUserCase(get()) }
 
     //repositories
     single<ProductRepository> { DefaultProductRepository(get(), get()) }
