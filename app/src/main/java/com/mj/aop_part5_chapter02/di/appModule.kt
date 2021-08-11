@@ -6,8 +6,10 @@ import com.mj.aop_part5_chapter02.data.network.provideProductApiService
 import com.mj.aop_part5_chapter02.data.network.provideProductRetrofit
 import com.mj.aop_part5_chapter02.data.repository.DefaultProductRepository
 import com.mj.aop_part5_chapter02.data.repository.ProductRepository
-import com.mj.aop_part5_chapter02.domain.GetProductItemUserCase
-import com.mj.aop_part5_chapter02.domain.GetProductListUserCase
+import com.mj.aop_part5_chapter02.domain.GetProductItemUseCase
+import com.mj.aop_part5_chapter02.domain.GetProductListUseCase
+import com.mj.aop_part5_chapter02.domain.OrderProductItemUseCase
+import com.mj.aop_part5_chapter02.presentation.detail.ProductDetailViewModel
 import com.mj.aop_part5_chapter02.presentation.list.ProductListViewModel
 import com.mj.aop_part5_chapter02.presentation.main.MainViewModel
 import com.mj.aop_part5_chapter02.presentation.profile.ProfileViewModel
@@ -21,14 +23,16 @@ val appModule = module {
     viewModel { MainViewModel() }
     viewModel {ProductListViewModel(get())}
     viewModel {ProfileViewModel()}
+    viewModel { (productId: Long) -> ProductDetailViewModel(productId, get(), get())}
 
     //Coroutine Dispatcher
     single { Dispatchers.Main }
     single { Dispatchers.IO }
 
     //UseCases
-    factory { GetProductItemUserCase(get()) }
-    factory { GetProductListUserCase(get()) }
+    factory { GetProductItemUseCase(get()) }
+    factory { GetProductListUseCase(get()) }
+    factory { OrderProductItemUseCase(get()) }
 
     //repositories
     single<ProductRepository> { DefaultProductRepository(get(), get()) }
