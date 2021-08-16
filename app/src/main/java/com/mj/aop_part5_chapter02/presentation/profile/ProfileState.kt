@@ -23,4 +23,6 @@ sealed class ProfileState {
 
         object NotRegistered: Success()
     }
+
+    object Error: ProfileState()
 }

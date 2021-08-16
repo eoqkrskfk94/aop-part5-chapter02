@@ -3,6 +3,8 @@ package com.mj.aop_part5_chapter02.presentation.profile
 import android.app.Activity
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -12,15 +14,16 @@ import com.mj.aop_part5_chapter02.databinding.FragmentProfileBinding
 import com.mj.aop_part5_chapter02.presentation.BaseFragment
 import org.koin.android.ext.android.inject
 
-internal class ProfileFragment: BaseFragment<ProfileViewModel, FragmentProfileBinding>() {
+internal class ProfileFragment : BaseFragment<ProfileViewModel, FragmentProfileBinding>() {
 
-    companion object{
+    companion object {
         const val TAG = "ProfileFragment"
     }
 
     override val viewModel by inject<ProfileViewModel>()
 
-    override fun getViewBinding(): FragmentProfileBinding = FragmentProfileBinding.inflate(layoutInflater)
+    override fun getViewBinding(): FragmentProfileBinding =
+        FragmentProfileBinding.inflate(layoutInflater)
 
     private val gso: GoogleSignInOptions by lazy {
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -35,22 +38,30 @@ internal class ProfileFragment: BaseFragment<ProfileViewModel, FragmentProfileBi
 
     private val firebaseAuth by lazy { FirebaseAuth.getInstance() }
 
-    private val loginLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if(result.resultCode == Activity.RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                task.getResult(ApiException::class.java)?.let { account ->
-                    Log.d(TAG, "firebaseAuthWithGoogle: ${account.id}")
+    private val loginLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                try {
+                    task.getResult(ApiException::class.java)?.let { account ->
+                        Log.e(TAG, "firebaseAuthWithGoogle: ${account.id}")
 
-                } ?: throw Exception()
-            } catch (e: Exception) {
-                e.printStackTrace()
+                    } ?: throw Exception()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
+
         }
 
-    }
-
-    override fun observeData() {
+    override fun observeData() = viewModel.profileStateLiveData.observe(this) {
+        when (it) {
+            is ProfileState.Unintialized -> initViews()
+            is ProfileState.Loading -> handleLoadingState()
+            is ProfileState.Login -> TODO()
+            is ProfileState.Success -> handleSuccessState(it)
+            is ProfileState.Error -> TODO()
+        }
     }
 
     private fun initViews() = with(binding) {
@@ -61,7 +72,24 @@ internal class ProfileFragment: BaseFragment<ProfileViewModel, FragmentProfileBi
         logoutButton.setOnClickListener {
 
         }
+    }
 
+    private fun handleLoadingState() = with(binding) {
+        progressBar.isVisible = true
+        loginRequiredGroup.isGone = true
+    }
+
+    private fun handleSuccessState(state: ProfileState.Success) = with(binding) {
+        progressBar.isGone = true
+        when (state) {
+            is ProfileState.Success.Registered -> {
+                //handleRegisterState(state)
+            }
+            is ProfileState.Success.NotRegistered -> {
+                profileGroup.isGone = true
+                loginRequiredGroup.isVisible = true
+            }
+        }
     }
 
     private fun signInGoogle() {

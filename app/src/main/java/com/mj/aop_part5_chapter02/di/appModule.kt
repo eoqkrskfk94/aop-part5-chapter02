@@ -6,6 +6,7 @@ import com.mj.aop_part5_chapter02.data.network.buildOkHttpClient
 import com.mj.aop_part5_chapter02.data.network.provideGsonConverterFactory
 import com.mj.aop_part5_chapter02.data.network.provideProductApiService
 import com.mj.aop_part5_chapter02.data.network.provideProductRetrofit
+import com.mj.aop_part5_chapter02.data.preference.PreferenceManager
 import com.mj.aop_part5_chapter02.data.repository.DefaultProductRepository
 import com.mj.aop_part5_chapter02.data.repository.ProductRepository
 import com.mj.aop_part5_chapter02.domain.GetProductItemUseCase
@@ -25,7 +26,7 @@ val appModule = module {
     //viewmodels
     viewModel { MainViewModel() }
     viewModel {ProductListViewModel(get())}
-    viewModel {ProfileViewModel()}
+    viewModel {ProfileViewModel(get())}
     viewModel { (productId: Long) -> ProductDetailViewModel(productId, get(), get())}
 
     //Coroutine Dispatcher
@@ -44,6 +45,7 @@ val appModule = module {
     single { buildOkHttpClient() }
     single { provideProductApiService(get()) }
     single { provideProductRetrofit(get(), get()) }
+    single { PreferenceManager(androidContext()) }
 
     //database
     single { provideDb(androidContext()) }
