@@ -3,10 +3,13 @@ package com.mj.aop_part5_chapter02.presentation.profile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
 import com.mj.aop_part5_chapter02.data.preference.PreferenceManager
 import com.mj.aop_part5_chapter02.presentation.BaseViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.jvm.internal.Intrinsics
 
 internal class ProfileViewModel(
@@ -31,6 +34,29 @@ internal class ProfileViewModel(
 
     private fun setState(state: ProfileState) {
         _profileStateLiveData.postValue(state)
+    }
+
+    fun saveToken(idToken: String) = viewModelScope.launch {
+        withContext(Dispatchers.IO) {
+            preferenceManager.putIdToken(idToken)
+            fetchData()
+        }
+    }
+
+    fun setUserInfo(firebaseUser: FirebaseUser?) = viewModelScope.launch {
+        firebaseUser?.let { user ->
+            setState(
+                ProfileState.Success.Registered(
+                    user.displayName ?: "none",
+                    user.photoUrl,
+                    listOf()
+                )
+            )
+        } ?: kotlin.run {
+            setState(
+                ProfileState.Success.NotRegistered
+            )
+        }
     }
 
 }

@@ -9,8 +9,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthCredential
+import com.google.firebase.auth.GoogleAuthProvider
 import com.mj.aop_part5_chapter02.R
 import com.mj.aop_part5_chapter02.databinding.FragmentProfileBinding
+import com.mj.aop_part5_chapter02.extension.loadCenterCrop
 import com.mj.aop_part5_chapter02.presentation.BaseFragment
 import org.koin.android.ext.android.inject
 
@@ -27,7 +30,7 @@ internal class ProfileFragment : BaseFragment<ProfileViewModel, FragmentProfileB
 
     private val gso: GoogleSignInOptions by lazy {
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestIdToken("352723616823-h3inpubdga8vp0h80svv00729vnuvftr.apps.googleusercontent.com")
             .requestEmail()
             .build()
     }
@@ -45,10 +48,12 @@ internal class ProfileFragment : BaseFragment<ProfileViewModel, FragmentProfileB
                 try {
                     task.getResult(ApiException::class.java)?.let { account ->
                         Log.e(TAG, "firebaseAuthWithGoogle: ${account.id}")
+                        viewModel.saveToken(account.idToken ?: throw Exception())
 
                     } ?: throw Exception()
                 } catch (e: Exception) {
                     e.printStackTrace()
+
                 }
             }
 
@@ -58,11 +63,13 @@ internal class ProfileFragment : BaseFragment<ProfileViewModel, FragmentProfileB
         when (it) {
             is ProfileState.Unintialized -> initViews()
             is ProfileState.Loading -> handleLoadingState()
-            is ProfileState.Login -> TODO()
+            is ProfileState.Login -> handleLoginState(it)
             is ProfileState.Success -> handleSuccessState(it)
-            is ProfileState.Error -> TODO()
+            is ProfileState.Error -> handleErrorState()
         }
     }
+
+
 
     private fun initViews() = with(binding) {
         loginButton.setOnClickListener {
@@ -83,13 +90,46 @@ internal class ProfileFragment : BaseFragment<ProfileViewModel, FragmentProfileB
         progressBar.isGone = true
         when (state) {
             is ProfileState.Success.Registered -> {
-                //handleRegisterState(state)
+                handleRegisterState(state)
             }
             is ProfileState.Success.NotRegistered -> {
                 profileGroup.isGone = true
                 loginRequiredGroup.isVisible = true
             }
         }
+    }
+
+    private fun handleRegisterState(state: ProfileState.Success.Registered) =with(binding) {
+        profileGroup.isVisible = true
+        loginRequiredGroup.isGone = true
+        profileImageView.loadCenterCrop(state.profileImageUri.toString(), 60f)
+        userNameTextView.text = state.userName
+
+        if(state.productList.isEmpty()) {
+            emptyResultTextView.isGone = false
+            recyclerView.isGone = true
+        } else {
+            emptyResultTextView.isGone = true
+            recyclerView.isGone = false
+        }
+
+    }
+
+    private fun handleLoginState(state: ProfileState.Login) = with(binding) {
+        val credential = GoogleAuthProvider.getCredential(state.idToken, null)
+        firebaseAuth.signInWithCredential(credential)
+            .addOnCompleteListener(requireActivity()) { task ->
+                println(task)
+                if(task.isSuccessful) {
+                    val user = firebaseAuth.currentUser
+                    viewModel.setUserInfo(user)
+                } else {
+                    viewModel.setUserInfo(null)
+                }
+            }
+    }
+
+    private fun handleErrorState() {
     }
 
     private fun signInGoogle() {
