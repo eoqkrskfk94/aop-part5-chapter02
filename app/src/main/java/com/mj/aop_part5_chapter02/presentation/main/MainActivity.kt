@@ -8,6 +8,7 @@ import com.google.android.material.navigation.NavigationView
 import com.mj.aop_part5_chapter02.R
 import com.mj.aop_part5_chapter02.databinding.ActivityMainBinding
 import com.mj.aop_part5_chapter02.presentation.BaseActivity
+import com.mj.aop_part5_chapter02.presentation.BaseFragment
 import com.mj.aop_part5_chapter02.presentation.list.ProductListFragment
 import com.mj.aop_part5_chapter02.presentation.profile.ProfileFragment
 import org.koin.android.ext.android.inject
@@ -62,6 +63,7 @@ internal class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>()
             is MainState.RefreshOrderListState -> {
                 binding.bottomNav.selectedItemId = R.id.menu_profile
                 val fragment = supportFragmentManager.findFragmentByTag(ProfileFragment.TAG)
+                (fragment as BaseFragment< *, *>).viewModel.fetchData()
             }
         }
     }

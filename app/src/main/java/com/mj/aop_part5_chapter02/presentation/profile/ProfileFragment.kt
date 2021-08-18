@@ -15,6 +15,8 @@ import com.mj.aop_part5_chapter02.R
 import com.mj.aop_part5_chapter02.databinding.FragmentProfileBinding
 import com.mj.aop_part5_chapter02.extension.loadCenterCrop
 import com.mj.aop_part5_chapter02.presentation.BaseFragment
+import com.mj.aop_part5_chapter02.presentation.adapter.ProductListAdapter
+import com.mj.aop_part5_chapter02.presentation.detail.ProductDetailActivity
 import org.koin.android.ext.android.inject
 
 internal class ProfileFragment : BaseFragment<ProfileViewModel, FragmentProfileBinding>() {
@@ -24,6 +26,8 @@ internal class ProfileFragment : BaseFragment<ProfileViewModel, FragmentProfileB
     }
 
     override val viewModel by inject<ProfileViewModel>()
+
+    private val adapter = ProductListAdapter()
 
     override fun getViewBinding(): FragmentProfileBinding =
         FragmentProfileBinding.inflate(layoutInflater)
@@ -72,12 +76,13 @@ internal class ProfileFragment : BaseFragment<ProfileViewModel, FragmentProfileB
 
 
     private fun initViews() = with(binding) {
+        recyclerView.adapter = adapter
         loginButton.setOnClickListener {
             signInGoogle()
         }
 
         logoutButton.setOnClickListener {
-
+            viewModel.signOut()
         }
     }
 
@@ -111,11 +116,17 @@ internal class ProfileFragment : BaseFragment<ProfileViewModel, FragmentProfileB
         } else {
             emptyResultTextView.isGone = true
             recyclerView.isGone = false
+            adapter.setProductList(state.productList) {
+                startActivity(
+                    ProductDetailActivity.newIntent(requireContext(), it.id)
+                )
+            }
         }
 
     }
 
     private fun handleLoginState(state: ProfileState.Login) = with(binding) {
+        progressBar.isVisible = true
         val credential = GoogleAuthProvider.getCredential(state.idToken, null)
         firebaseAuth.signInWithCredential(credential)
             .addOnCompleteListener(requireActivity()) { task ->
